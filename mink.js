@@ -1,5 +1,6 @@
 mink = {
 	files: new Meteor.Collection('minkFiles'),
+	inkKey: null,
 
 	profiles: {
 		'default': {
@@ -30,7 +31,14 @@ mink = {
 		return this.extIcons[ext] || this.extIcons['*'];
 	},
 
-	init: function(options) {
+	init: function(key, options) {
+		if (_.isString(key))
+			this.inkKey = key;
+		else if (!options)
+			options = key;
+		else
+			throw new Error("mink.init called with invalid parameters.  Usage: mink.init(key, options)");
+
 		// Copy one level of default profile options for picker_options, store_options
 		// i.e. user has specified new defaults for default profile
 		if (options.profiles && options.profiles.default) {
@@ -190,32 +198,3 @@ mink = {
 	}
 
 };
-
-mink.init({
-	'profiles': {
-		default: {
-			store_options: { },
-			picker_options: { },
-			minkOptions: {
-				urlType: 's3'
-			}
-		},
-		'profilePic': {
-			picker_options: {
-				mimetypes: ['image/*'],
-				multiple: false				
-			},
-			store_options: {
-				path: '/profile/'
-			},
-			minkOptions: {
-				thumbHeight: 120
-			}
-		},
-		'docs': {
-			store_options: { path: '/docs/' }
-		}
-	}
-});
-
-
