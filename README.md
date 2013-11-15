@@ -11,13 +11,13 @@ so they don't waste any time to include file management in their app.  Screensho
 
 Note: unfortunately, it seems that ink aren't offering their free plans anymore :(
 So if you don't have an ink account, you'll need to sign up for one of their
-[https://www.inkfilepicker.com/pricing/](free 10 day trials) after which their
+[free 10 day trials](https://www.inkfilepicker.com/pricing/) after which their
 cheapest plan is $19/mo.
 
 
 ## Features:
 
-* Add file attachment support with 2 lines of code (see Quick Start)
+* Add file attachment support with 3 lines of code (see Quick Start)
 * Visually appealing display of file names, size, icon for type, etc.
 * Images will be grouped into a thumbnail gallery and shown with Fancybox
 * Thumbnails for the above and in general can be automatically generated
@@ -44,21 +44,30 @@ filepicker api key, e.g.:
 mink.init('FilePickerApiKey');
 ```
 
-In your template, add:
+In your template (for adding/showing files), add:
 
 ```html
-{{minkFiles}}
+{{minkFiles editable=1}}
 ```
+
+`editable` can be ommitted, or `1` can be replaced with a template variable - if
+true, users will be able to add/remove files.  Or just have your own template event
+which sets `this.editable` to true.
 
 In your javascript, when saving a document, include:
 
 ```js
 {
-	attachments: mink.minData()
+	files: mink.minDataSave(tpl.data.minkToken)
 }
 ```
 
-That's it!
+`tpl` is the template instance, e.g. 
+
+**That's it!**
+
+Note: the `files` key is the default used in Mink.  If you store the data elsewhere,
+you'll need to call `{{minkFiles otherKey}}`.
 
 ## Stuff
 
@@ -66,6 +75,12 @@ That's it!
 no more free plan! :(
 
 token can be 'new', 'user', or db id etc.
+
+## Examples
+
+### Attachments to a message
+
+### Profile pictures
 
 ## Customization, security, etc.
 
@@ -103,7 +118,31 @@ in the preset default profile (which you can modify on init), e.g.
 
 ### URL choice
 
+Set `minkOptions.urlType` (in default or specific profiles)
+
+**1. "ink" (default)**
+
+e.g. https://www.filepicker.io/api/file/Hn13y1v4RtWnIAt54ffN
+
+**2. "s3"**
+
+e.g. //s3-eu-west-1.amazonaws.com/bucket/path/image.jpg
+
+**3. "domain"**
+
+e.g. //yourdomain.com/mink/Hn13y1v4RtWnIAt.jpg
+
+We append the original filename extension to the URL.  It's ignored by the
+backend, but I found it more useful and user friendly to put it there.
+
+Note: this urlType is **required** to enforce security policies (see the
+next section)
+
 ### Request-time validation for domain URLs
+
+### Mink Tokens explained
+
+### Storing attachments in your documents
 
 ### Full Mink JS API
 
@@ -117,3 +156,5 @@ in the preset default profile (which you can modify on init), e.g.
 * allow saving of converted medium and large sizes (vs super big original size)
 * should certain activities be done via the server?
 * security policies, user or admin (func) only
+* think about session variable use to survive hot code pushes, etc
+* specify fancybox options somewhere

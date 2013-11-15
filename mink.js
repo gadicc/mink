@@ -13,9 +13,23 @@ mink = {
 				access: 'public'
 			},
 			minkOptions: {
+				urlType: 'ink',
 				thumbHeight: 80
 			}
-		}
+		}, 'profilePic': {
+            picker_options: {
+                mimetypes: ['image/*'],
+                multiple: false             
+            },
+            store_options: {
+                path: '/profile/'
+            },
+            minkOptions: {
+                thumbHeight: 120
+            }
+        }, 'docs': {
+            store_options: { path: '/docs/' }
+        }
 	},
 
 	extIcons: {
@@ -32,12 +46,25 @@ mink = {
 	},
 
 	init: function(key, options) {
+		// Allow for init(key, options), init(key), init({ key: key, optA: B, etc })
 		if (_.isString(key))
 			this.inkKey = key;
 		else if (!options)
 			options = key;
 		else
 			throw new Error("mink.init called with invalid parameters.  Usage: mink.init(key, options)");
+
+		if (!options)
+			options = {};
+		if (options.inkKey)
+			this.inkKey = options.inkKey;
+
+		if (!this.inkKey)
+			throw new Error("mink.init failed, no inkKey specified as 1st param or option");
+
+		Meteor.startup(function() {
+			filepicker.setKey(mink.inkKey);
+		});
 
 		// Copy one level of default profile options for picker_options, store_options
 		// i.e. user has specified new defaults for default profile
@@ -69,9 +96,17 @@ mink = {
 		f.uploadedAt = new Date().getTime();
 		f.token = minkOptions.token;
 		f.profile = minkOptions.profile;
+		f.unsaved = true;
 
 		f._id = mink.files.insert(f);
 		return f;
+	},
+
+	dbMarkSaved: function(ids) {
+		if (_.isArray(ids))
+			mink.files.update({_ids: {$in: ids}}, {$unset: {unsaved: 1}});
+		else
+			mink.files.update(ids,{$unset: {unsaved: 1}});
 	},
 
 	dbStorePic: function(f, minkOptions) {
@@ -86,7 +121,7 @@ mink = {
 			if (f.height > minkOptions.thumbHeight) {
 
 				var height = minkOptions.thumbHeight;
-				var width = f.width * (minkOptions.thumbHeight / f.height);
+				var width = Math.floor(f.width * (minkOptions.thumbHeight / f.height));
 
 				// request conversion
 				filepicker.convert(f, { width: width, height: height },
@@ -118,28 +153,70 @@ mink = {
 	 * Return the essential data which could be stored in documents inline.  This
 	 * is the minimum data required to render the default minkFiles template.
 	 */
-	minData: function(token) {
+	minDataForFile: function(f) {
+		var min = {
+			     _id: f._id,
+			mimetype: f.mimetype,
+			filename: f.filename,
+			     url: mink.url(f)
+		};
+		if (f.mimetype.match(/^image/))
+			min.thumb = {
+				width: f.thumb.width,
+				height: f.thumb.height,
+				url: mink.url(f)
+			}
+		else
+			min.size = f.size;
+		return min;
+	},
+	minDataForIds: function(ids) {
+		var files = mink.files.find({_id: {$in: ids}}).fetch();
+		var out = [];
+		_.each(files, function(f) {
+			out.push(mink.minDataForFile(f));
+		});
+		return out;
+	},
+	minData: function(token, save) {
+		console.log('minData called with token ' + token);
 		if (!token) token = Session.get('minkToken');
 		var out = [],
 		  files = mink.files.find({token: token}, { fields: {_id: true }}).fetch();
 		_.each(files, function(f) {
-			var min = { _id: f._id, mimetype: f.mimetype, filename: f.filename };
-			if (f.mimetype.match(/^image/))
-				min.thumb = {
-					width: f.thumb.width,
-					height: f.thumb.height,
-					url: mink.url(f, 's3')
-				}
-			else
-				min.size = f.size;
-			out.push(min);
+			out.push(mink.minDataForFile(f));
+			if (save)
+				mink.dbMarkSaved(f._id);
 		});
+		//if (save !== false)
+		//	this.dbMarkSaved(_.pluck(out, '_id'));
 		return out;
+	},
+	minDataSave: function(token) {
+		return mink.minData(token, true);
+	},
+	reMinData: function(collection, key) {
+		var docs, query = {};
+		if (!key) key='files';
+		query[key] = { $exists: true };
+		docs = collection.find(query).fetch();
+
+		_.each(docs, function(doc) {
+			var files = mink.minDataForIds(_.pluck(doc.files, '_id'));
+			collection.update(doc._id, {$set: { files: files }});
+		});
 	},
 
 	url: function(f, type) {
 		if (!_.isObject(f))
 			f = mink.files.findOne(id);
+		if (!f.key)
+			return f.url;
+		if (!type) {
+			var profile = this.profile || 'default';
+			type = mink.profiles[profile].minkOptions.urlType
+			    || mink.profiles['default'].minkOptions.urlType;
+		}
 		if (type == 's3') {
 			return '//s3-eu-west-1.amazonaws.com/myrez/' + f.key;
 		} else
@@ -168,6 +245,8 @@ mink = {
 		if (minkOptions.token != Session.get('minkToken'))
 			Session.set('minkToken', minkOptions.token);
 
+		console.log('pickAndStore called with token ' + minkOptions.token);
+
 		filepicker.pickAndStore(picker_options, store_options, function(InkBlobs) {
 			for (var i=0, f=InkBlobs[i]; i < InkBlobs.length; f=InkBlobs[++i]) {
 				if (f.mimetype.match(/^image/)) {
@@ -195,6 +274,10 @@ mink = {
 	        return (bytes / 1000000).toFixed(2) + ' MB';
 	    }
 	    return (bytes / 1000).toFixed(2) + ' KB';
+	},
+
+	randomToken: function() {
+		return new Date().getTime() + Math.random();
 	}
 
 };
