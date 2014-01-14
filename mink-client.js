@@ -29,8 +29,13 @@ Handlebars.registerHelper('minkProfile', function(options) {
 	if (!this.minkToken)
 		this.minkToken = this._id || mink.randomToken();
 
+	// TODO, think abuot what's really going on here and above
+	jQuery.extend(this, options.hash);
+	console.log(this);
+
 	return typeof(Package.spacebars) == 'object'
-		? Template.tMinkProfile : new Handlebars.SafeString(Template.minkProfile(this));
+		? Template.tMinkProfile.withData(this)
+		: new Handlebars.SafeString(Template.minkProfile(this));
 });
 
 Template.tMinkFiles.helpers({
@@ -117,52 +122,46 @@ Template.tMinkProfile.events({
 	},
 	'click a.minkChangePic': function(event, tpl) {
 		console.log('minkAdd click on ' + tpl.data.minkToken);
-		mink.pickAndStore({}, {}, { token: tpl.data.minkToken, profile: 'profilePic' });
+		var minkOptions = { token: tpl.data.minkToken, profile: 'profilePic' };
+		if (tpl.data.done) minkOptions.doneCallback = tpl.data.done;
+		mink.pickAndStore({}, {}, minkOptions);
 	}	
 });
 
 mink.sub = Meteor.subscribe('minkFiles');
 
-mink.jcrop_api = null;
-mink.dbStoreCropSave = function() {
-	var boxWidth = 500, boxHeight = 500;
-	var cropWidth = 120, cropHeight = 150;
+mink.dbStoreCrop = function(f, store_options, minkOptions) {
+	// initial store... thumbnail placeholder will be shown
+	mink.dbStore(f, minkOptions);
 
-	// tellSelect()	 Query current selection values (true size, same as coords)
-	// tellScaled()  Query current selection values (interface)
-	var selection = jcrop_api.tellSelect();
-	console.log(selection);
+	// get original image dimensions
+	filepicker.stat(f, { width: true, height: true }, function(stats) {
 
-	this.jcrop_api = null;
-};
+		_.extend(f, stats); // add width+height to object
+		mink.files.update(f._id, {$set: { width: f.width, height: f.height }});
+		mink.userJcrop(f, store_options, minkOptions);
 
-mink.showPreview = function(coords) {
-	var preview = $('#mink_jcrop_preview');
-	var target = $('#mink_jcrop_target');
-	var data = preview.data();
-
-	var rx = data.cropWidth / coords.w;
-	var ry = data.cropHeight / coords.h;
-
-	preview.css({
-		width: Math.round(data.trueWidth * rx) + 'px',
-		height: Math.round(data.trueHeight * ry) + 'px',
-		marginLeft: '-' + Math.round(coords.x * rx) + 'px',
-		marginTop: '-' + Math.round(coords.y * ry) + 'px'
 	});
 }
 
-Meteor.startup(function() {
-	var f = {"url":"https://www.filepicker.io/api/file/XKlPZZOqRKWNsWVqOO20","filename":"sexy-fairy.jpg","mimetype":"image/jpeg","size":42869,"key":"profile/KTEwq4IjQsFUDCKMukEi_sexy-fairy.jpg","container":"myrez","isWriteable":true,"userId":"yBzYYBojsJiBSit22","uploadedAt":1389628948140,"token":1389628926601.5137,"profile":"profilePic","unsaved":true,"_id":"v8cifW9CYrq5JFDkP","width":1024,"height":768};
-	var o = {"token":1389628926601.5137,"profile":"profilePic","urlType":"s3","thumbHeight":50,"allowUserCrop":true,"croppedHeight":160,"croppedWidth":160,"thumbWidth":50};
-
+/*
+ * All code relating to UI/Jcrop.  Given a file object / inkblob (which must
+ * include width/height properties), open a modal allowing the user to crop
+ * the image, and call our save callback
+ */
+mink.jcrop_api = null;
+mink.userJcrop = function(f, store_options, minkOptions) {
 	modal({
 		title: 'Crop Picture',
 		body: 'tMinkProfileCrop',
 		save: 'mink.dbStoreCropSave',
-		context: {
-			fullSizeUrl: f.url
-		}
+		context: { fullSizeUrl: f.url },
+		data: {
+			fileId: f._id,
+			store_options: store_options,
+			minkOptions: minkOptions
+		},
+		width: 700
 	});
 
 	var boxWidth = 500, boxHeight = 500;
@@ -202,6 +201,83 @@ Meteor.startup(function() {
 			f.width/2-cropWidth/2, f.height/2-cropHeight/2,
 			f.width/2+cropWidth/2, f.height/2+cropHeight/2
 		]);
-	});
+	});	
+};
 
+mink.dbStoreCropSave = function(event, tpl, data) {
+	var f = mink.files.findOne(data.data.fileId);
+	var selection = mink.jcrop_api.tellSelect();
+	var minkOptions = data.data.minkOptions;
+	var store_options = data.data.store_options;
+	mink.jcrop_api = null;	// done with this
+
+	// crop image
+	filepicker.convert(f,
+		{ crop: [Math.round(selection.x), Math.round(selection.y),
+				Math.round(selection.w), Math.round(selection.h)] },
+		store_options,
+		function(croppedFile) {
+			// receive cropped image and scale it
+			filepicker.convert(
+				croppedFile,
+				{
+					width: minkOptions.croppedWidth,
+					height: minkOptions.croppedHeight,
+					fit: 'scale'
+				},
+				store_options,
+				function(FPFile) {
+
+					// This is where we end.  Save the cropped & scaled file
+					FPFile.width = minkOptions.croppedWidth;
+					FPFile.height = minkOptions.croppedHeight;
+					mink.files.update(f._id, {$set: { csFile: FPFile }});
+
+					// delete original cropped only (unscaled) image
+					filepicker.remove(croppedFile, function(){
+					        console.log("Removed");
+					});
+
+					if (minkOptions.doneCallback && window[minkOptions.doneCallback])
+						window[minkOptions.doneCallback](f);
+
+					// TODO, save thumbnail aswell
+
+				}, function(FPError) {
+					console.log(FPError);
+				}, function(percent) {
+					// TODO
+					//console.log(percent);
+				}
+			);
+
+		}, function(FPError) {
+			console.log(FPError);
+		}, function(percent) {
+			// TODO
+			console.log(percent);
+		});
+};
+
+mink.showPreview = function(coords) {
+	var preview = $('#mink_jcrop_preview');
+	var target = $('#mink_jcrop_target');
+	var data = preview.data();
+
+	var rx = data.cropWidth / coords.w;
+	var ry = data.cropHeight / coords.h;
+
+	preview.css({
+		width: Math.round(data.trueWidth * rx) + 'px',
+		height: Math.round(data.trueHeight * ry) + 'px',
+		marginLeft: '-' + Math.round(coords.x * rx) + 'px',
+		marginTop: '-' + Math.round(coords.y * ry) + 'px'
+	});
+}
+
+Meteor.startup(function() {
+	var f = {"url":"https://www.filepicker.io/api/file/XKlPZZOqRKWNsWVqOO20","filename":"sexy-fairy.jpg","mimetype":"image/jpeg","size":42869,"key":"profile/KTEwq4IjQsFUDCKMukEi_sexy-fairy.jpg","container":"myrez","isWriteable":true,"userId":"yBzYYBojsJiBSit22","uploadedAt":1389628948140,"token":1389628926601.5137,"profile":"profilePic","unsaved":true,"_id":"v8cifW9CYrq5JFDkP","width":1024,"height":768};
+	var store_options = {"location":"S3","path":"/profile/","access":"public"};
+	var minkOptions = {"token":1389628926601.5137,"profile":"profilePic","urlType":"s3","thumbHeight":50,"allowUserCrop":true,"croppedHeight":160,"croppedWidth":160,"thumbWidth":50,"doneCallback":"saveUserPic"};
+	mink.userJcrop(f, store_options, minkOptions);
 });

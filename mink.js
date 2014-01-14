@@ -147,39 +147,6 @@ mink = {
 		});
 	},
 
-	dbStoreCrop: function(f, minkOptions) {
-		// initial store... thumbnail placeholder will be shown
-		mink.dbStore(f, minkOptions);
-
-		// get original image dimensions
-		filepicker.stat(f, { width: true, height: true }, function(stats) {
-			
-			_.extend(f, stats); // add width+height to object, don't save yet
-		console.log(JSON.stringify(f));
-		console.log(JSON.stringify(minkOptions));
-
-			
-			var boxWidth = 500, boxHeight = 500;
-			var cropWidth = 120, cropHeight = 150;
-
-			modal({
-				title: 'Crop Picture',
-				body: 'tMinkProfileCrop',
-				save: 'mink.dbStoreCropSave'
-			});
-
-			$('#mink_jcrop_target').Jcrop({
-				boxWidth: boxWidth, boxHeight: boxHeight, aspectRatio: cropWidth / cropHeight,
-				allowSelect: false, onChange: showPreview, onSelect: showPreview
-			}, function() {
-				jcrop_api = this;
-				console.log('jcrop_api set');
-			});
-
-		});
-	},
-
-
 	ids: function(token) {
 		if (!token) token = Session.get('minkToken');
 		var files = mink.files.find({token: token}, { fields: {_id: true }}).fetch();
@@ -290,10 +257,12 @@ mink = {
 
 			if (minkOptions.allowUserCrop) {
 
-				mink.dbStoreCrop(InkBlobs[0], minkOptions);
+				// single picture that user must crop before saving
+				mink.dbStoreCrop(InkBlobs[0], store_options, minkOptions);
 
 			}  else {
 
+				// default: multiple files of any type (doc, picture, etc)
 				for (var i=0, f=InkBlobs[i]; i < InkBlobs.length; f=InkBlobs[++i]) {
 					if (f.mimetype.match(/^image/)) {
 						mink.dbStorePic(f, minkOptions);
