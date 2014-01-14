@@ -4,7 +4,7 @@ table.minkFiles img { width: 20px; height: 20px; }
 table.minkFiles span.name { font-size: 0.8em; }
 table.minkFiles span.size { font-size: 0.8em; color: #555; }
 
-div.minkThumbs { padding: 10px; }
+div.minkThumbs { }
 div.minkThumbs a {
 	display: inline-block;
 	vertical-align: bottom; 
@@ -13,6 +13,7 @@ div.minkThumbs a {
 	border-radius: 4px;
 	cursor: pointer;
 	margin-bottom: 10px;
+	margin-right: 10px;
 	-webkit-transition: background 0.2s ease-out;
 	-moz-transition: background 0.2s ease-out;
 	-ms-transition: background 0.2s ease-out;
@@ -45,4 +46,25 @@ div.minkThumbs .loading {
   width: 16px; 	height: 10px;
   background-position: center center;
   background-repeat: no-repeat;
+}
+
+div.minkProfileWrapper {
+	position: relative;
+}
+
+div.minkProfileWrapper > a {
+	position: absolute; top: 0, left: 0;
+	padding: 10px; background: rgba(0,0,0,0.7);
+	color: white; text-align: center;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	visibility: hidden;
+}
+div.minkProfileWrapper:hover > a {
+	visibility: visible;
+}
+
+
+div.minkProfileWrapper > img {
+	border: 1px solid black; border-radius: 5px;
 }

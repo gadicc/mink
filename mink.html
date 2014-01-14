@@ -1,4 +1,4 @@
-<template name="minkFiles">
+<template name="tMinkFiles">
 	{{#if files}}
 		<table class="minkFiles">
 			{{#each files}}
@@ -29,7 +29,6 @@
 						<div class="processing"><span class="loading"></span></div>
 					{{/if}}
 				</a>
-				&nbsp;
 			</span>
 			{{/if}}
 			{{/each}}
@@ -38,4 +37,26 @@
 	{{#if editable}}
 	<a class="minkAdd">Add Files</a>
 	{{/if}}
+</template>
+
+<template name="tMinkProfile">
+	<div class="minkProfileWrapper">
+		<a class="minkChangePic">Change Picture</a>
+		<img src="">
+	</div>
+</template>
+
+<template name="tMinkProfileCrop">
+	<table>
+		<tr>
+			<td width="550px">
+				<img src="{{fullSizeUrl}}" id="mink_jcrop_target" />
+			</td>
+			<td width="200px">
+				<div style="width:120px;height:150px;overflow:hidden;margin-left:5px;border:1px solid black;">
+				<img src="{{fullSizeUrl}}" style="max-width: none;" id="mink_jcrop_preview"/>
+				</div>
+			</td>
+		</tr>
+	</table>
 </template>

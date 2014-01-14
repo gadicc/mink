@@ -25,7 +25,11 @@ mink = {
                 path: '/profile/'
             },
             minkOptions: {
-                thumbHeight: 120
+            	allowUserCrop: true,
+            	croppedHeight: 160,
+            	croppedWidth: 160,
+                thumbHeight: 50,
+                thumbWidth: 50,
             }
         }, 'docs': {
             store_options: { path: '/docs/' }
@@ -66,15 +70,15 @@ mink = {
 			filepicker.setKey(mink.inkKey);
 		});
 
-		// Copy one level of default profile options for picker_options, store_options
-		// i.e. user has specified new defaults for default profile
-		if (options.profiles && options.profiles.default) {
-			var t = this.profiles.default, o = options.profiles.default;
-			o.picker_options = _.extend(t.picker_options, o.picker_options);
-			o.store_options = _.extend(t.store_options, o.store_options);
-			o.minkOptions = _.extend(t.minkOptions, o.minkOptions);
+		if (options.profiles) {
+			if (Meteor.isClient) {
+				$.extend(true, this.profiles, options.profiles);
+			} else if (Meteor.isServer) {
+				// TODO UNTESTED
+				var extend = Npm.require('xtend');
+				this.profiles = extend(this.profiles, options.profiles);
+			}
 		}
-		_.extend(this, options);
 	},
 
 	/*
@@ -142,6 +146,39 @@ mink = {
 			}
 		});
 	},
+
+	dbStoreCrop: function(f, minkOptions) {
+		// initial store... thumbnail placeholder will be shown
+		mink.dbStore(f, minkOptions);
+
+		// get original image dimensions
+		filepicker.stat(f, { width: true, height: true }, function(stats) {
+			
+			_.extend(f, stats); // add width+height to object, don't save yet
+		console.log(JSON.stringify(f));
+		console.log(JSON.stringify(minkOptions));
+
+			
+			var boxWidth = 500, boxHeight = 500;
+			var cropWidth = 120, cropHeight = 150;
+
+			modal({
+				title: 'Crop Picture',
+				body: 'tMinkProfileCrop',
+				save: 'mink.dbStoreCropSave'
+			});
+
+			$('#mink_jcrop_target').Jcrop({
+				boxWidth: boxWidth, boxHeight: boxHeight, aspectRatio: cropWidth / cropHeight,
+				allowSelect: false, onChange: showPreview, onSelect: showPreview
+			}, function() {
+				jcrop_api = this;
+				console.log('jcrop_api set');
+			});
+
+		});
+	},
+
 
 	ids: function(token) {
 		if (!token) token = Session.get('minkToken');
@@ -225,7 +262,7 @@ mink = {
 
 	pickAndStore: function(picker_options, store_options, minkOptions) {
 		// Set up default and profile options
-		var profile = 'default';
+		var profile = minkOptions.profile || 'default';
 
 		if (_.isString(picker_options)) {
 			profile = picker_options;
@@ -248,12 +285,23 @@ mink = {
 		console.log('pickAndStore called with token ' + minkOptions.token);
 
 		filepicker.pickAndStore(picker_options, store_options, function(InkBlobs) {
-			for (var i=0, f=InkBlobs[i]; i < InkBlobs.length; f=InkBlobs[++i]) {
-				if (f.mimetype.match(/^image/)) {
-					mink.dbStorePic(f, minkOptions);
-				} else {
-					mink.dbStore(f, minkOptions);
+
+			console.log(minkOptions);
+
+			if (minkOptions.allowUserCrop) {
+
+				mink.dbStoreCrop(InkBlobs[0], minkOptions);
+
+			}  else {
+
+				for (var i=0, f=InkBlobs[i]; i < InkBlobs.length; f=InkBlobs[++i]) {
+					if (f.mimetype.match(/^image/)) {
+						mink.dbStorePic(f, minkOptions);
+					} else {
+						mink.dbStore(f, minkOptions);
+					}
 				}
+
 			}
 		}, function(FPError) {
 			// TODO, XXX, decide what to do with errors
@@ -281,3 +329,4 @@ mink = {
 	}
 
 };
+

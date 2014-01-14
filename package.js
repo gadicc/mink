@@ -3,10 +3,14 @@ Package.describe({
 });
 
 Package.on_use(function (api) {
+	Npm.depends({'xtend':'2.1.1'});
 	api.use('underscore', ['client', 'server']);	
 	api.add_files('mink.js', ['client', 'server']);
 
 	api.add_files('mink-server.js', 'server');
+
+	// enable once https://github.com/meteor/meteor/issues/1358 fixed
+	// api.use('iron-rouer', 'client', { weak: true });
 
 	api.use(['templating', 'handlebars'], 'client');
 	api.add_files('filepicker-nonblock.js', 'client');
