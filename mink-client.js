@@ -165,7 +165,8 @@ mink.userJcrop = function(f, store_options, minkOptions) {
 	});
 
 	var boxWidth = 500, boxHeight = 500;
-	var cropWidth = 120, cropHeight = 150;
+	var cropWidth = minkOptions.croppedWidth || 120,
+		cropHeight = minkOptions.croppedHeight || 150;
 
 	var scale;
 	if (f.width > boxWidth) {		
@@ -181,6 +182,8 @@ mink.userJcrop = function(f, store_options, minkOptions) {
 		scale: scale,
 		cropWidth: cropWidth, cropHeight: cropHeight,
 		trueWidth: f.width, trueHeight: f.height
+	}).parent().css({
+		width: cropWidth, height: cropHeight
 	});
 
 	$('#mink_jcrop_target').css({
@@ -232,6 +235,7 @@ mink.dbStoreCropSave = function(event, tpl, data) {
 					FPFile.width = minkOptions.croppedWidth;
 					FPFile.height = minkOptions.croppedHeight;
 					mink.files.update(f._id, {$set: { csFile: FPFile }});
+					f.csFile = FPFile;
 
 					// delete original cropped only (unscaled) image
 					filepicker.remove(croppedFile, function(){
@@ -247,7 +251,7 @@ mink.dbStoreCropSave = function(event, tpl, data) {
 					console.log(FPError);
 				}, function(percent) {
 					// TODO
-					//console.log(percent);
+					console.log('scale ' + percent);
 				}
 			);
 
@@ -255,7 +259,7 @@ mink.dbStoreCropSave = function(event, tpl, data) {
 			console.log(FPError);
 		}, function(percent) {
 			// TODO
-			console.log(percent);
+			console.log('crop ' + percent);
 		});
 };
 
@@ -276,6 +280,7 @@ mink.showPreview = function(coords) {
 }
 
 Meteor.startup(function() {
+	return;
 	var f = {"url":"https://www.filepicker.io/api/file/XKlPZZOqRKWNsWVqOO20","filename":"sexy-fairy.jpg","mimetype":"image/jpeg","size":42869,"key":"profile/KTEwq4IjQsFUDCKMukEi_sexy-fairy.jpg","container":"myrez","isWriteable":true,"userId":"yBzYYBojsJiBSit22","uploadedAt":1389628948140,"token":1389628926601.5137,"profile":"profilePic","unsaved":true,"_id":"v8cifW9CYrq5JFDkP","width":1024,"height":768};
 	var store_options = {"location":"S3","path":"/profile/","access":"public"};
 	var minkOptions = {"token":1389628926601.5137,"profile":"profilePic","urlType":"s3","thumbHeight":50,"allowUserCrop":true,"croppedHeight":160,"croppedWidth":160,"thumbWidth":50,"doneCallback":"saveUserPic"};
