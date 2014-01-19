@@ -171,10 +171,10 @@ mink.userJcrop = function(f, store_options, minkOptions) {
 	var scale;
 	if (f.width > boxWidth) {		
 		scale = boxWidth / f.width;
-		boxHeight = boxHeight * scale;
+		boxHeight = f.height * scale;
 	} else {
-		scale =  f.height / boxHeight;
-		boxWidth = boxWidth * scale;
+		scale =  boxHeight / f.height;
+		boxWidth = f.width * scale;
 	}
 
 	// data for our showPreview() callback passed to Jcrop
@@ -280,7 +280,7 @@ mink.showPreview = function(coords) {
 }
 
 Meteor.startup(function() {
-	return;
+	//return;
 	var f = {"url":"https://www.filepicker.io/api/file/XKlPZZOqRKWNsWVqOO20","filename":"sexy-fairy.jpg","mimetype":"image/jpeg","size":42869,"key":"profile/KTEwq4IjQsFUDCKMukEi_sexy-fairy.jpg","container":"myrez","isWriteable":true,"userId":"yBzYYBojsJiBSit22","uploadedAt":1389628948140,"token":1389628926601.5137,"profile":"profilePic","unsaved":true,"_id":"v8cifW9CYrq5JFDkP","width":1024,"height":768};
 	var store_options = {"location":"S3","path":"/profile/","access":"public"};
 	var minkOptions = {"token":1389628926601.5137,"profile":"profilePic","urlType":"s3","thumbHeight":50,"allowUserCrop":true,"croppedHeight":160,"croppedWidth":160,"thumbWidth":50,"doneCallback":"saveUserPic"};
