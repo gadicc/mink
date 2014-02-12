@@ -4,7 +4,7 @@
 			{{#each files}}
 			{{#if isImage}}
 			{{else}}
-				<tr {{#if unsaved}}class="unsaved"{{/if}}>
+				<tr class="{{#if unsaved}}unsaved{{/if}}">
 					<td>{{#if extIcon}}
 						<img src="/packages/mink/icons/{{extIcon}}" />
 						{{/if}}</td>
@@ -21,7 +21,7 @@
 			{{#each files}}
 			{{#if isImage}}
 			<span>
-				<a data-fancybox-type="image" href="{{url}}" rel="{{../../rel}}" title="{{filename}}" {{#if unsaved}}class="unsaved"{{/if}}>
+				<a data-fancybox-type="image" href="{{url}}" rel="{{../../rel}}" title="{{filename}}" class="{{#if unsaved}}unsaved{{/if}}">
 					{{#if thumb}}
 						<img style="width: {{thumb.width}}px; height: {{thumb.height}}px"
 							src="{{thumb.url}}" />
@@ -40,7 +40,7 @@
 </template>
 
 <template name="tMinkProfile">
-	<div class="minkProfileWrapper">
+	<div class="minkProfileWrapper" id="{{id}}">
 		<a class="minkChangePic">Change Picture</a>
 		<img src="{{src}}" />
 	</div>

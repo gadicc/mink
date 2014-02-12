@@ -83,15 +83,25 @@ mink = {
 
 	/*
 	 * Given a profile name, fills picker_options, store_options, etc, with values
-	 * from default profile, overridden by values in specified profile
+	 * from default profile, overridden by values in specified profile,
+	 * overriden by specified options (if any)
 	 */
 	setOpts: function(profile, picker_options, store_options, minkOptions) {
+		/*
+		 * _.extend(obj, ..., _.clone(obj)) necessary for desired effect
+		 * We want to update the original object rather than create a new
+		 * one, since we were given reference.  But we still want the original
+		 * values to take priority, so we clone the object before the operatn.
+		 */
 		_.extend(picker_options, this.profiles['default'].picker_options,
-			this.profiles[profile] ? this.profiles[profile].picker_options : {});
+			this.profiles[profile] ? this.profiles[profile].picker_options : {},
+			_.clone(picker_options));
 		_.extend(store_options, this.profiles['default'].store_options,
-			this.profiles[profile] ? this.profiles[profile].store_options: {});
+			this.profiles[profile] ? this.profiles[profile].store_options: {},
+			_.clone(store_options));
 		_.extend(minkOptions, this.profiles['default'].minkOptions,
-			this.profiles[profile] ? this.profiles[profile].minkOptions: {});
+			this.profiles[profile] ? this.profiles[profile].minkOptions: {},
+			_.clone(minkOptions));
 		minkOptions.profile = profile;
 	},
 
@@ -113,7 +123,7 @@ mink = {
 			mink.files.update(ids,{$unset: {unsaved: 1}});
 	},
 
-	dbStorePic: function(f, minkOptions) {
+	dbStorePic: function(f, minkOptions, store_options) {
 		// initial store... thumbnail placeholder will be shown
 		mink.dbStore(f, minkOptions);
 
@@ -122,13 +132,40 @@ mink = {
 			
 			_.extend(f, stats); // add width+height to object, don't save yet
 
-			if (f.height > minkOptions.thumbHeight) {
+			var width = null, height = null;
+			if (minkOptions.thumbHeight && minkOptions.thumbHeight == '*')
+				delete(minkOptions.thumbHeight);
+			if (minkOptions.thumbWidth && minkOptions.thumbWidth == '*')
+				delete(minkOptions.thumbWidth);
 
-				var height = minkOptions.thumbHeight;
-				var width = Math.floor(f.width * (minkOptions.thumbHeight / f.height));
+			console.log(f);
+			console.log(minkOptions);
+
+			if (minkOptions.thumbHeight && minkOptions.thumbWidth) {
+
+				// if both are specified, force thumbnail to this size
+				// ROADMAP, allow crop/stretch/center strategies
+				height = minkOptions.thumbHeight;
+				width = minkOptions.thumbWidth;
+
+			} else if (minkOptions.thumbHeight && f.height > minkOptions.thumbHeight) {
+
+				// scale down to specified height
+				height = minkOptions.thumbHeight;
+				width = Math.floor(f.width * (minkOptions.thumbHeight / f.height));
+
+			} else if (minkOptions.thumbWidth && f.width > minkOptions.thumbWidth) {
+
+				// scale down to specified width
+				width = minkOptions.thumbWidth;
+				height = Math.floor(f.height * (minkOptions.thumbWidth / f.width));
+			}
+
+			if (width || height) {
 
 				// request conversion
 				filepicker.convert(f, { width: width, height: height },
+					store_options,
 					function(thumbBlob) {
 						thumbBlob.width = width;
 						thumbBlob.height = height;
@@ -138,11 +175,13 @@ mink = {
 						mink.files.update(f._id, {$set: {
 							width: f.width, height: f.height, thumb: f.thumb
 						}});
-					});
+					}
+				);
 
 			} else {
 
 				mink.files.update(f._id, {$set: { width: width, height: height }});
+
 			}
 		});
 	},
@@ -164,15 +203,27 @@ mink = {
 			filename: f.filename,
 			     url: mink.url(f)
 		};
-		if (f.mimetype.match(/^image/))
-			min.thumb = {
-				width: f.thumb.width,
-				height: f.thumb.height,
-				url: mink.url(f)
-			}
-		else
+		console.log(f);
+		if (f.mimetype.match(/^image/)) {
+			if (f.thumb)
+				min.thumb = {
+					width: f.thumb.width,
+					height: f.thumb.height,
+					url: mink.url(f.thumb)
+				}
+			if (f.csFile)
+				min.csFile = {
+					width: f.csFile.width,
+					height: f.csFile.height,
+					url: mink.url(f.csFile)
+				}
+		} else
 			min.size = f.size;
 		return min;
+	},
+	minDataForId: function(id) {
+		var f = mink.files.findOne({_id: id});
+		return mink.minDataForFile(f);
 	},
 	minDataForIds: function(ids) {
 		var files = mink.files.find({_id: {$in: ids}}).fetch();
@@ -186,7 +237,7 @@ mink = {
 		console.log('minData called with token ' + token);
 		if (!token) token = Session.get('minkToken');
 		var out = [],
-		  files = mink.files.find({token: token}, { fields: {_id: true }}).fetch();
+		  files = mink.files.find({token: token}).fetch();
 		_.each(files, function(f) {
 			out.push(mink.minDataForFile(f));
 			if (save)
@@ -265,7 +316,7 @@ mink = {
 				// default: multiple files of any type (doc, picture, etc)
 				for (var i=0, f=InkBlobs[i]; i < InkBlobs.length; f=InkBlobs[++i]) {
 					if (f.mimetype.match(/^image/)) {
-						mink.dbStorePic(f, minkOptions);
+						mink.dbStorePic(f, minkOptions, store_options);
 					} else {
 						mink.dbStore(f, minkOptions);
 					}

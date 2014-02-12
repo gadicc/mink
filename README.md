@@ -69,6 +69,16 @@ In your javascript, when saving a document, include:
 Note: the `files` key is the default used in Mink.  If you store the data elsewhere,
 you'll need to call `{{minkFiles otherKey}}`.
 
+## Profile picture
+
+{{> minkProfile id="bulletinPic" save="saveFunc?"}}
+
+if no saveFunc, to capture data:
+
+var minkId = $('#bb-add-pic').data('mink-id');
+if (minkId) data.pic = mink.minDataForId(minkId);
+
+
 ## Stuff
 
 

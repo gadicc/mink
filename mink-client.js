@@ -7,6 +7,11 @@ Handlebars.registerHelper('minkFiles', function(options) {
 			this.editable = options.hash.editable;
 		if (options.hash.token)
 			this.minkToken = options.hash.token;
+		if (options.hash.thumbWidth) {
+			this.thumbWidth = options.hash.thumbWidth;
+		}
+		if (options.hash.thumbHeight)
+			this.thumbHeight = options.hash.thumbHeight;
 	} 
 	if (this._id && !this.files && !this.editable)
 		return;
@@ -71,7 +76,14 @@ Template.tMinkFiles.helpers({
 Template.tMinkFiles.events({
 	'click a.minkAdd': function(event, tpl) {
 		console.log('minkAdd click on ' + tpl.data.minkToken);
-		mink.pickAndStore({}, {}, { token: tpl.data.minkToken });
+		var minkOptions = { token: tpl.data.minkToken };
+
+		if (tpl.data.hasOwnProperty('thumbHeight'))
+			minkOptions.thumbHeight = tpl.data.thumbHeight;
+		if (tpl.data.hasOwnProperty('thumbWidth'))
+			minkOptions.thumbWidth = tpl.data.thumbWidth;
+
+		mink.pickAndStore({}, {}, minkOptions);
 	},
 	'click a:not(.minkAdd)': function(event, tpl) {
 		// fancybox open: handle the event ourselves to avoid conflicts
@@ -111,8 +123,11 @@ Template.tMinkProfile.rendered = function() {
 	var height = mink.profiles.profilePic.minkOptions.croppedHeight,
 		width = mink.profiles.profilePic.minkOptions.croppedWidth; 
 
+	var $img = $(this.find('img'));
+	$img.css({ height: height, width: width });
+	if ($img.attr('src') == '')
+		$img.attr('src', '/packages/mink/no_avatar.jpg');
 	$(this.find('div')).css({ height: height, width: width });
-	$(this.find('img')).css({ height: height, width: width });
 	$(this.find('a')).css('width', width);
 }
 
@@ -122,8 +137,16 @@ Template.tMinkProfile.events({
 	},
 	'click a.minkChangePic': function(event, tpl) {
 		console.log('minkAdd click on ' + tpl.data.minkToken);
+
 		var minkOptions = { token: tpl.data.minkToken, profile: 'profilePic' };
 		if (tpl.data.done) minkOptions.doneCallback = tpl.data.done;
+
+		// store the minkToken in the element itself, so we can find it
+		// again later to update the pic
+		$(event.target)
+			.closest('div.minkProfileWrapper')
+			.attr('data-mink-token', tpl.data.minkToken);
+
 		mink.pickAndStore({}, {}, minkOptions);
 	}	
 });
@@ -241,6 +264,11 @@ mink.dbStoreCropSave = function(event, tpl, data) {
 					filepicker.remove(croppedFile, function(){
 					        console.log("Removed");
 					});
+
+					$div = $('div.minkProfileWrapper[data-mink-token="'
+						+ minkOptions.token + '"]');
+					$div.attr('data-mink-id', f._id);
+					$div.find('img').attr('src', mink.url(f.csFile));
 
 					if (minkOptions.doneCallback && window[minkOptions.doneCallback])
 						window[minkOptions.doneCallback](f);
