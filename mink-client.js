@@ -14,7 +14,7 @@ Handlebars.registerHelper('minkFiles', function(options) {
 			this.thumbHeight = options.hash.thumbHeight;
 	} 
 	if (this._id && !this.files && !this.editable)
-		return;
+		return null;
 	if (!this.minkToken)
 		this.minkToken = this._id || mink.randomToken();
 
@@ -30,7 +30,7 @@ Handlebars.registerHelper('minkProfile', function(options) {
 			this.minkToken = options.hash.token;
 	} 
 	if (this._id && !this.profilePic && !this.editable)
-		return;
+		return null;
 	if (!this.minkToken)
 		this.minkToken = this._id || mink.randomToken();
 
