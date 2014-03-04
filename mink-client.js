@@ -1,18 +1,7 @@
-Handlebars.registerHelper('minkFiles', function(options) {
+Handlebars.registerHelper('minkFiles', function() {
 	console.log(options);
 	if (!this.rel) this.rel = this._id || 'group';
-
-	if (options && options.hash) {
-		if (options.hash.editable)
-			this.editable = options.hash.editable;
-		if (options.hash.token)
-			this.minkToken = options.hash.token;
-		if (options.hash.thumbWidth) {
-			this.thumbWidth = options.hash.thumbWidth;
-		}
-		if (options.hash.thumbHeight)
-			this.thumbHeight = options.hash.thumbHeight;
-	} 
+	if (this.token) this.minkToken = this.token;
 	if (this._id && !this.files && !this.editable)
 		return null;
 	if (!this.minkToken)
@@ -22,7 +11,7 @@ Handlebars.registerHelper('minkFiles', function(options) {
 		? Template.tMinkFiles : new Handlebars.SafeString(Template.minkFiles(this));
 });
 
-Handlebars.registerHelper('minkProfile', function(options) {
+Handlebars.registerHelper('minkProfile', function() {
 	if (this.token) this.minkToken = this.token;
 	if (this._id && !this.profilePic && !this.editable)
 		return null;
