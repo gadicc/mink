@@ -1,5 +1,5 @@
 Handlebars.registerHelper('minkFiles', function() {
-	console.log(options);
+	console.log(this, arguments);
 	if (!this.rel) this.rel = this._id || 'group';
 	if (this.token) this.minkToken = this.token;
 	if (this._id && !this.files && !this.editable)
@@ -12,6 +12,7 @@ Handlebars.registerHelper('minkFiles', function() {
 });
 
 Handlebars.registerHelper('minkProfile', function() {
+	console.log(this, arguments);
 	if (this.token) this.minkToken = this.token;
 	if (this._id && !this.profilePic && !this.editable)
 		return null;
