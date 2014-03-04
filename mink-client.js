@@ -23,24 +23,14 @@ Handlebars.registerHelper('minkFiles', function(options) {
 });
 
 Handlebars.registerHelper('minkProfile', function(options) {
-	if (options && options.hash) {
-		if (options.hash.editable)
-			this.editable = options.hash.editable;
-		if (options.hash.token)
-			this.minkToken = options.hash.token;
-	} 
+	if (this.token) this.minkToken = this.token;
 	if (this._id && !this.profilePic && !this.editable)
 		return null;
 	if (!this.minkToken)
 		this.minkToken = this._id || mink.randomToken();
 
-	// TODO, think abuot what's really going on here and above
-	jQuery.extend(this, options.hash);
-	console.log(this);
-
-	return typeof(Package.spacebars) == 'object'
-		? Template.tMinkProfile.withData(this)
-		: new Handlebars.SafeString(Template.minkProfile(this));
+	// withData
+	return Template.tMinkProfile;
 });
 
 Template.tMinkFiles.helpers({
