@@ -7,6 +7,8 @@ Handlebars.registerHelper('minkFiles', function() {
 	if (!this.minkToken)
 		this.minkToken = this._id || mink.randomToken();
 
+	console.log(this, arguments);
+
 	return typeof(Package.spacebars) == 'object'
 		? Template.tMinkFiles : new Handlebars.SafeString(Template.minkFiles(this));
 });
@@ -294,3 +296,7 @@ Meteor.startup(function() {
 	var minkOptions = {"token":1389628926601.5137,"profile":"profilePic","urlType":"s3","thumbHeight":50,"allowUserCrop":true,"croppedHeight":160,"croppedWidth":160,"thumbWidth":50,"doneCallback":"saveUserPic"};
 	mink.userJcrop(f, store_options, minkOptions);
 });
+
+mink.tokenFromTpl = function(tpl) {
+	return parseFloat(tpl.find('.minkFiles').getAttribute('id'));
+}

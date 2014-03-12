@@ -1,6 +1,6 @@
 <template name="tMinkFiles">
 	{{#if files}}
-		<table class="minkFiles">
+		<table class="minkFiles" id="{{minkToken}}">
 			{{#each files}}
 			{{#if isImage}}
 			{{else}}
