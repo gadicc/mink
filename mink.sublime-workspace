@@ -11,7 +11,23 @@
 			"file": "mink-client.js",
 			"settings":
 			{
-				"buffer_size": 8660,
+				"buffer_size": 8942,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "filepicker-nonblock.js",
+			"settings":
+			{
+				"buffer_size": 594,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "mink.html",
+			"settings":
+			{
+				"buffer_size": 1525,
 				"line_ending": "Unix"
 			}
 		}
@@ -66,7 +82,7 @@
 	],
 	"find":
 	{
-		"height": 0.0
+		"height": 34.0
 	},
 	"find_in_files":
 	{
@@ -80,6 +96,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"return"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -106,15 +123,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 8660,
+						"buffer_size": 8942,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								82,
+								82
 							]
 						],
 						"settings":
@@ -127,6 +144,62 @@
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "filepicker-nonblock.js",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 594,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "mink.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1525,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 450.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
 					"type": "text"
 				}
 			]
