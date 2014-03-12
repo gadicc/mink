@@ -7,7 +7,7 @@
 				<tr class="{{#if unsaved}}unsaved{{/if}}">
 					<td>{{#if extIcon}}
 						<img src="/packages/mink/icons/{{extIcon}}" />
-						{{/if}}</td>
+						{{/if}}&nbsp;</td>
 					<td>
 						<a class="name" href="{{url}}">{{filename}}</a>
 						<span class="size">({{humanSize}})</span>
@@ -21,7 +21,7 @@
 			{{#each files}}
 			{{#if isImage}}
 			<span>
-				<a data-fancybox-type="image" href="{{url}}" rel="{{../../rel}}" title="{{filename}}" class="{{#if unsaved}}unsaved{{/if}}">
+				<a data-fancybox-type="image" href="{{url}}" rel="{{../rel}}" title="{{filename}}" class="{{#if unsaved}}unsaved{{/if}}">
 					{{#if thumb}}
 						<img style="width: {{thumb.width}}px; height: {{thumb.height}}px"
 							src="{{thumb.url}}" />

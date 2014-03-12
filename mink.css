@@ -1,8 +1,17 @@
-table.minkFiles { padding: 5px; }
-table.minkFiles tr td { padding: 0px 5px 0px 5px; }
-table.minkFiles img { width: 20px; height: 20px; }
-table.minkFiles span.name { font-size: 0.8em; }
-table.minkFiles span.size { font-size: 0.8em; color: #555; }
+table.minkFiles {
+	margin: 15px 0 0 0;
+	padding: 5px;
+}
+table.minkFiles tr td {
+	padding: 3px 0px 3px 0px;
+	vertical-align: bottom;
+}
+table.minkFiles img {
+	position: relative;
+	width: 20px; height: 20px;
+}
+table.minkFiles span.name { font-size: 0.9em; }
+table.minkFiles span.size { font-size: 0.9em; color: #999; }
 
 div.minkThumbs { }
 div.minkThumbs a {
@@ -12,6 +21,7 @@ div.minkThumbs a {
 	padding: 5px;
 	border-radius: 4px;
 	cursor: pointer;
+	margin-top: 10px;
 	margin-bottom: 10px;
 	margin-right: 10px;
 	-webkit-transition: background 0.2s ease-out;
