@@ -1,5 +1,5 @@
 Handlebars.registerHelper('minkFiles', function() {
-	console.log(this, arguments);
+//	console.log(this, arguments);
 	if (!this.rel) this.rel = this._id || 'group';
 	if (this.token) this.minkToken = this.token;
 	if (this._id && !this.files && !this.editable)
@@ -7,7 +7,7 @@ Handlebars.registerHelper('minkFiles', function() {
 	if (!this.minkToken)
 		this.minkToken = this._id || mink.randomToken();
 
-	console.log(this, arguments);
+//	console.log(this, arguments);
 
 	return typeof(Package.spacebars) == 'object'
 		? Template.tMinkFiles : new Handlebars.SafeString(Template.minkFiles(this));
