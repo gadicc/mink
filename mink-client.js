@@ -68,6 +68,10 @@ Template.tMinkFiles.events({
 		mink.pickAndStore({}, {}, minkOptions);
 	},
 	'click a:not(.minkAdd)': function(event, tpl) {
+		// don't handle non images
+		if (!event.target.getAttribute('data-fancybox-type'))
+			return;
+
 		// fancybox open: handle the event ourselves to avoid conflicts
 		event.preventDefault();
 		event.stopPropagation();

@@ -39,8 +39,10 @@ mink = {
 	extIcons: {
 		'xls' : 'Microsoft_Excel_icon.gif',
 		'doc' : 'msword_icon.gif',
+		'docx' : 'msword_icon.gif',
 		'pdf' : 'pdf-icon.png',
 		'zip' : 'winzip_icon_xp.gif',
+		'mp3' : 'mp3_icon_32.png',
 		  '*' : ''
 	},
 

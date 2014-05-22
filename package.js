@@ -21,7 +21,8 @@ Package.on_use(function (api) {
 
 	api.add_files([
 		'icons/winzip_icon_xp.gif', 'icons/msword_icon.gif',
-		'icons/pdf-icon.png', 'icons/Microsoft_Excel_icon.gif'
+		'icons/pdf-icon.png', 'icons/Microsoft_Excel_icon.gif',
+		'icons/mp3_icon_32.png'
 	], 'client');
 
 	api.export('mink', ['client', 'server']);
