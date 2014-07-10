@@ -2,6 +2,11 @@ mink = {
 	files: new Meteor.Collection('minkFiles'),
 	inkKey: null,
 
+	s3: {
+		host: 's3-eu-west-1.amazonaws.com',
+		bucket: 'myrez'
+	},
+
 	profiles: {
 		'default': {
 			picker_options: {
@@ -81,6 +86,9 @@ mink = {
 				this.profiles = extend(this.profiles, options.profiles);
 			}
 		}
+
+		if (options.s3)
+			_.extend(mink.s3, options.s3);
 	},
 
 	/*
@@ -275,7 +283,8 @@ mink = {
 			    || mink.profiles['default'].minkOptions.urlType;
 		}
 		if (type == 's3') {
-			return '//s3-eu-west-1.amazonaws.com/myrez/' + f.key;
+			return '//' + mink.s3.host + '/' + mink.s3.bucket + '/' + f.key;
+//			return '//s3-eu-west-1.amazonaws.com/myrez/' + f.key;
 		} else
 			return f.url;
 	},
